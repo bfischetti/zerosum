@@ -7,6 +7,7 @@ The ledger's integrity rules are enforced by the database, not only by applicati
 - entries can only be added in the DB transaction that created their transaction, so a committed transaction can't later gain a balanced pair of entries (insert trigger comparing the row's `xmin` to the current transaction id)
 - entries belong to accounts in the transaction's group (composite foreign keys on `group_id`, not a trigger)
 - a transaction is a reversal exactly when `reverses_id` is set (CHECK constraint)
+- a transaction's `amount` agrees with its entries: a settlement's debits equal it, an expense's debits don't exceed it, and a reversal's amount equals its original's (deferred and insert triggers)
 - a reversal cannot be voided (insert trigger)
 - a transaction is voided at most once (`unique (reverses_id)`)
 

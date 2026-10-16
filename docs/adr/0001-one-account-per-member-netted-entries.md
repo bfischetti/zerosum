@@ -9,6 +9,7 @@ Each member has exactly one ledger account per group, and a transaction posts at
 
 ## Consequences
 
+- An expense's total can't be recovered from its entries either, so each transaction stores its headline `amount` (descriptive only; balances still come from entries).
 - An expense whose only participant is the payer would net to zero and leave no entries, so it is rejected.
 - Settlement entries are never netted, so Sent/Received can still be derived. They are computed from non-voided settlements only, because splitting entries by sign would count a reversal as money flowing back.
 - If spending totals are ever needed, they belong in a per-expense breakdown (v2), not in the account structure.

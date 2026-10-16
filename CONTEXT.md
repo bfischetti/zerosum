@@ -24,6 +24,9 @@ The single ledger account a **Member** has in a **Group**. It is created when th
 **Transaction**:
 An atomic ledger event made of two or more **Entries** that sum to zero. Its type is **Expense**, **Settlement** or **Reversal**.
 
+**Amount** (of a **Transaction**):
+The headline sum of a **Transaction**: an **Expense**'s total, a **Settlement**'s payment, or for a **Reversal** the amount of the transaction it reverses. It describes the transaction; **Balances** come only from **Entries**.
+
 **Occurred at**:
 When a **Transaction** happened in real life, as stated by whoever recorded it. It may be in the past but never in the future, and it defaults to the moment of recording. A **Reversal** always occurs at the moment of voiding.
 _Avoid_: Date (ambiguous with the recording time)
