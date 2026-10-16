@@ -1,14 +1,13 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import type { Db } from "../db.js";
+import { GroupParams } from "../http/schemas.js";
 import { createGroup } from "./groups.js";
 import { addMemberToGroup } from "./membership.js";
 
 const CreateGroupBody = z.object({
   name: z.string().trim().min(1).max(200),
 });
-
-const GroupParams = z.object({ groupId: z.uuid() });
 
 const AddMemberBody = z.object({ memberId: z.uuid() });
 
