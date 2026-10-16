@@ -42,7 +42,7 @@ export async function postTransaction(
   db: Db,
   groupId: string,
   entries: Array<[accountId: string, amount: number]>,
-  opts: { type?: TransactionType; reversesId?: string } = {},
+  opts: { type?: TransactionType; reversesId?: string; amount?: number } = {},
 ): Promise<string> {
   return db.transaction().execute(async (trx) => {
     const tx = await trx
@@ -51,6 +51,10 @@ export async function postTransaction(
         group_id: groupId,
         type: opts.type ?? "expense",
         reverses_id: opts.reversesId ?? null,
+        // Defaults to what the debits add up to, which satisfies every type.
+        amount:
+          opts.amount ??
+          Math.max(1, entries.reduce((sum, [, amount]) => sum + Math.max(0, amount), 0)),
       })
       .returning("id")
       .executeTakeFirstOrThrow();

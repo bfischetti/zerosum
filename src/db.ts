@@ -35,6 +35,11 @@ export interface TransactionsTable {
   type: TransactionType;
   description: string | null;
   reverses_id: string | null;
+  /**
+   * Headline amount in cents: the expense total, the settlement amount, or the
+   * reversed transaction's amount. Descriptive only; balances come from entries.
+   */
+  amount: number;
   occurred_at: ColumnType<Date, Date | string | undefined, never>;
   recorded_at: CreatedAt;
 }

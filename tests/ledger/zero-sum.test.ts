@@ -33,7 +33,7 @@ describe("zero-sum invariant", () => {
     await db.transaction().execute(async (trx) => {
       const tx = await trx
         .insertInto("transactions")
-        .values({ group_id: groupId, type: "settlement" })
+        .values({ group_id: groupId, type: "settlement", amount: 3000 })
         .returning("id")
         .executeTakeFirstOrThrow();
       const entry = (account_id: string, amount: number) => ({

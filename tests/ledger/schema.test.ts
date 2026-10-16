@@ -60,7 +60,7 @@ describe("ledger schema constraints", () => {
   it("requires reverses_id exactly when the type is reversal", async () => {
     const { groupId } = await groupWith(db, []);
     await expect(
-      db.insertInto("transactions").values({ group_id: groupId, type: "reversal" }).execute(),
+      db.insertInto("transactions").values({ group_id: groupId, type: "reversal", amount: 100 }).execute(),
     ).rejects.toThrow(/transactions_check/);
   });
 
