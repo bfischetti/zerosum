@@ -2,8 +2,9 @@
 
 The ledger's integrity rules are enforced by the database, not only by application code, so that no code path, script or manual `psql` session can write an invalid ledger. The rules:
 
-- every transaction balances to zero with at least two entries (a deferred constraint trigger, checked at commit)
-- `transactions` and `entries` are append-only (triggers reject UPDATE and DELETE)
+- every transaction balances to zero with at least two entries (deferred constraint triggers on both `entries` and `transactions`, checked at commit; the second catches a transaction with no entries)
+- `transactions`, `entries`, `accounts` and `group_members` are append-only (triggers reject UPDATE and DELETE)
+- entries can only be added in the DB transaction that created their transaction, so a committed transaction can't later gain a balanced pair of entries (insert trigger comparing the row's `xmin` to the current transaction id)
 - entries belong to accounts in the transaction's group (composite foreign keys on `group_id`, not a trigger)
 - a transaction is a reversal exactly when `reverses_id` is set (CHECK constraint)
 - a reversal cannot be voided (insert trigger)
