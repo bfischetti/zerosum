@@ -1,12 +1,29 @@
+import { randomUUID } from "node:crypto";
+import type { InjectOptions } from "fastify";
 import { afterAll } from "vitest";
 import { buildApp } from "../../src/app.js";
 import { testDb } from "./db.js";
 
 type App = ReturnType<typeof buildApp>;
 
-/** Builds the app against the test database; closed after the file's tests. */
-export function testApp(): App {
+/**
+ * Builds the app against the test database; closed after the file's tests.
+ *
+ * Every POST gets a fresh Idempotency-Key unless the request sets one, so
+ * tests that aren't about idempotency don't have to. Pass `autoKey: false`
+ * to send exactly the headers given.
+ */
+export function testApp({ autoKey = true }: { autoKey?: boolean } = {}): App {
   const app = buildApp({ db: testDb });
+  if (autoKey) {
+    const inject = app.inject.bind(app);
+    app.inject = ((opts: InjectOptions) =>
+      inject(
+        opts.method === "POST"
+          ? { ...opts, headers: { "idempotency-key": randomUUID(), ...opts.headers } }
+          : opts,
+      )) as App["inject"];
+  }
   afterAll(() => app.close());
   return app;
 }

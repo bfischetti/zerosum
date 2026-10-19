@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import type { Db } from "../db.js";
+import { idempotent } from "../http/idempotency.js";
 import { Cents, GroupParams, Timestamp } from "../http/schemas.js";
 import { recordSettlement } from "./settlements.js";
 
@@ -21,7 +22,6 @@ export function settlementRoutes(app: FastifyInstance, db: Db): void {
   app.post("/groups/:groupId/settlements", async (req, reply) => {
     const { groupId } = GroupParams.parse(req.params);
     const body = CreateSettlementBody.parse(req.body);
-    const settlement = await db.transaction().execute((trx) => recordSettlement(trx, groupId, body));
-    return reply.status(201).send(settlement);
+    return idempotent(db, req, reply, 201, (trx) => recordSettlement(trx, groupId, body));
   });
 }

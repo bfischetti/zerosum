@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import type { Db } from "../db.js";
+import { idempotent } from "../http/idempotency.js";
 import { Cents, GroupParams, Timestamp } from "../http/schemas.js";
 import { recordExpense } from "./expenses.js";
 
@@ -37,7 +38,6 @@ export function expenseRoutes(app: FastifyInstance, db: Db): void {
   app.post("/groups/:groupId/expenses", async (req, reply) => {
     const { groupId } = GroupParams.parse(req.params);
     const body = CreateExpenseBody.parse(req.body);
-    const expense = await db.transaction().execute((trx) => recordExpense(trx, groupId, body));
-    return reply.status(201).send(expense);
+    return idempotent(db, req, reply, 201, (trx) => recordExpense(trx, groupId, body));
   });
 }

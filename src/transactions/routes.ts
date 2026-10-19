@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import type { Db } from "../db.js";
+import { idempotent } from "../http/idempotency.js";
 import { PageQuery } from "../http/pagination.js";
 import { GroupParams } from "../http/schemas.js";
 import { groupHistory } from "./history.js";
@@ -16,8 +17,7 @@ export function transactionRoutes(app: FastifyInstance, db: Db): void {
   app.post("/transactions/:id/void", async (req, reply) => {
     const { id } = TransactionParams.parse(req.params);
     const body = VoidBody.parse(req.body);
-    const reversal = await db.transaction().execute((trx) => voidTransaction(trx, id, body?.description));
-    return reply.status(201).send(reversal);
+    return idempotent(db, req, reply, 201, (trx) => voidTransaction(trx, id, body?.description));
   });
 
   app.get("/groups/:groupId/transactions", async (req) => {
