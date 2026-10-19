@@ -121,15 +121,6 @@ describe("Idempotency-Key on write endpoints", () => {
     expect(await expenseCount()).toBe(1);
   });
 
-  it("writes once when the same key arrives concurrently", async () => {
-    const key = randomUUID();
-    const results = await Promise.all(Array.from({ length: 5 }, () => postExpense(key)));
-
-    expect(results.map((r) => r.statusCode)).toEqual([201, 201, 201, 201, 201]);
-    expect(new Set(results.map((r) => r.json().id)).size).toBe(1);
-    expect(await expenseCount()).toBe(1);
-  });
-
   describe("a duplicate waiting on an in-flight request", () => {
     // Deterministic version of the race: an open DB transaction holds the
     // key's row, exactly as an in-flight first request would.

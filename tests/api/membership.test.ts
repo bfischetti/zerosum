@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { testApp } from "../support/app.js";
 import { testDb as db } from "../support/db.js";
+import { releaseTogether } from "../support/locks.js";
 
 describe("POST /groups/:groupId/members", () => {
   const app = testApp();
@@ -51,7 +52,11 @@ describe("POST /groups/:groupId/members", () => {
     const groupId = await create("/groups", "Trip");
     const memberId = await create("/members", "Bruno");
 
-    const results = await Promise.all([join(groupId, memberId), join(groupId, memberId)]);
+    // Both wait at their insert into group_members, then race on its key.
+    const results = await releaseTogether("group_members", [
+      () => join(groupId, memberId),
+      () => join(groupId, memberId),
+    ]);
 
     expect(results.map((r) => r.statusCode).sort()).toEqual([201, 409]);
     expect(await db.selectFrom("accounts").selectAll().execute()).toHaveLength(1);

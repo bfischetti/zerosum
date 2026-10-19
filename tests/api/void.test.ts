@@ -110,22 +110,6 @@ describe("POST /transactions/:id/void", () => {
     expect(res.json().error.code).toBe("reversal_not_voidable");
   });
 
-  it("lets exactly one of several concurrent voids succeed", async () => {
-    const results = await Promise.all(Array.from({ length: 5 }, () => voidTx(dinnerId)));
-
-    expect(results.map((r) => r.statusCode).sort()).toEqual([201, 409, 409, 409, 409]);
-    for (const r of results.filter((r) => r.statusCode === 409)) {
-      expect(r.json().error.code).toBe("already_voided");
-    }
-    const reversals = await db
-      .selectFrom("transactions")
-      .where("reverses_id", "=", dinnerId)
-      .selectAll()
-      .execute();
-    expect(reversals).toHaveLength(1);
-    expect(await balances()).toEqual({ Alex: 0, Bruno: 0, Carla: 0 });
-  });
-
   it("returns 409 when it loses the race on the unique index", async () => {
     // Deterministic version of the race: another DB transaction holds an
     // uncommitted reversal, so the API's pre-check sees nothing and its insert
