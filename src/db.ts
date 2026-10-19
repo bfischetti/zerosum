@@ -53,6 +53,15 @@ export interface EntriesTable {
   amount: number;
 }
 
+export interface IdempotencyKeysTable {
+  key: string;
+  request_hash: string;
+  /** Null only between insert and commit of the request that owns the key. */
+  response_status: number | null;
+  response_body: unknown;
+  created_at: CreatedAt;
+}
+
 export interface Database {
   members: MembersTable;
   groups: GroupsTable;
@@ -60,6 +69,7 @@ export interface Database {
   accounts: AccountsTable;
   transactions: TransactionsTable;
   entries: EntriesTable;
+  idempotency_keys: IdempotencyKeysTable;
 }
 
 // Money is integer cents in `bigint` columns. pg returns int8 as a string by
