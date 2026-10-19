@@ -11,6 +11,7 @@
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down",
     "migrate": "tsx scripts/migrate.ts",
+    "seed": "tsx scripts/seed.ts",
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
     "typecheck": "tsc --noEmit",

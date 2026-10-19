@@ -12,10 +12,12 @@ import { transactionRoutes } from "./transactions/routes.js";
 
 export interface AppDeps {
   db: Db;
+  /** Request logging; defaults to on outside tests. */
+  logger?: boolean;
 }
 
-export function buildApp({ db }: AppDeps): FastifyInstance {
-  const app = Fastify({ logger: process.env.NODE_ENV !== "test" });
+export function buildApp({ db, logger = process.env.NODE_ENV !== "test" }: AppDeps): FastifyInstance {
+  const app = Fastify({ logger });
   registerErrorHandler(app);
 
   app.get("/health", async () => {
