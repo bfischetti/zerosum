@@ -1,5 +1,9 @@
-import type { Db } from "../db.js";
-import { postLedgerTransaction, rejectFutureOccurredAt, requireGroup } from "../ledger/post.js";
+import {
+  postLedgerTransaction,
+  rejectFutureOccurredAt,
+  requireGroup,
+  type Trx,
+} from "../ledger/post.js";
 
 export interface SettlementInput {
   fromMemberId: string;
@@ -27,38 +31,36 @@ export interface Settlement {
  * balance rises by the amount and the receiver's falls by it.
  */
 export async function recordSettlement(
-  db: Db,
+  trx: Trx,
   groupId: string,
   input: SettlementInput,
 ): Promise<Settlement> {
   rejectFutureOccurredAt(input.occurredAt);
 
-  return db.transaction().execute(async (trx) => {
-    await requireGroup(trx, groupId);
+  await requireGroup(trx, groupId);
 
-    const tx = await postLedgerTransaction(trx, {
-      groupId,
-      type: "settlement",
-      description: input.description ?? null,
-      amount: input.amount,
-      occurredAt: input.occurredAt,
-      // Credit the sender, debit the receiver (entries are debit-positive).
-      entries: new Map([
-        [input.fromMemberId, -input.amount],
-        [input.toMemberId, input.amount],
-      ]),
-    });
-
-    return {
-      id: tx.id,
-      groupId,
-      type: "settlement",
-      description: input.description ?? null,
-      amount: input.amount,
-      fromMemberId: input.fromMemberId,
-      toMemberId: input.toMemberId,
-      occurredAt: tx.occurredAt,
-      recordedAt: tx.recordedAt,
-    };
+  const tx = await postLedgerTransaction(trx, {
+    groupId,
+    type: "settlement",
+    description: input.description ?? null,
+    amount: input.amount,
+    occurredAt: input.occurredAt,
+    // Credit the sender, debit the receiver (entries are debit-positive).
+    entries: new Map([
+      [input.fromMemberId, -input.amount],
+      [input.toMemberId, input.amount],
+    ]),
   });
+
+  return {
+    id: tx.id,
+    groupId,
+    type: "settlement",
+    description: input.description ?? null,
+    amount: input.amount,
+    fromMemberId: input.fromMemberId,
+    toMemberId: input.toMemberId,
+    occurredAt: tx.occurredAt,
+    recordedAt: tx.recordedAt,
+  };
 }

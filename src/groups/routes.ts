@@ -21,7 +21,7 @@ export function groupRoutes(app: FastifyInstance, db: Db): void {
   app.post("/groups/:groupId/members", async (req, reply) => {
     const { groupId } = GroupParams.parse(req.params);
     const { memberId } = AddMemberBody.parse(req.body);
-    const membership = await addMemberToGroup(db, groupId, memberId);
+    const membership = await db.transaction().execute((trx) => addMemberToGroup(trx, groupId, memberId));
     return reply.status(201).send(membership);
   });
 }

@@ -37,7 +37,7 @@ export function expenseRoutes(app: FastifyInstance, db: Db): void {
   app.post("/groups/:groupId/expenses", async (req, reply) => {
     const { groupId } = GroupParams.parse(req.params);
     const body = CreateExpenseBody.parse(req.body);
-    const expense = await recordExpense(db, groupId, body);
+    const expense = await db.transaction().execute((trx) => recordExpense(trx, groupId, body));
     return reply.status(201).send(expense);
   });
 }

@@ -21,7 +21,7 @@ export function settlementRoutes(app: FastifyInstance, db: Db): void {
   app.post("/groups/:groupId/settlements", async (req, reply) => {
     const { groupId } = GroupParams.parse(req.params);
     const body = CreateSettlementBody.parse(req.body);
-    const settlement = await recordSettlement(db, groupId, body);
+    const settlement = await db.transaction().execute((trx) => recordSettlement(trx, groupId, body));
     return reply.status(201).send(settlement);
   });
 }

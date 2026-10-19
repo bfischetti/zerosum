@@ -16,7 +16,7 @@ export function transactionRoutes(app: FastifyInstance, db: Db): void {
   app.post("/transactions/:id/void", async (req, reply) => {
     const { id } = TransactionParams.parse(req.params);
     const body = VoidBody.parse(req.body);
-    const reversal = await voidTransaction(db, id, body?.description);
+    const reversal = await db.transaction().execute((trx) => voidTransaction(trx, id, body?.description));
     return reply.status(201).send(reversal);
   });
 
