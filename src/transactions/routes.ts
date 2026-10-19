@@ -1,6 +1,9 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import type { Db } from "../db.js";
+import { PageQuery } from "../http/pagination.js";
+import { GroupParams } from "../http/schemas.js";
+import { groupHistory } from "./history.js";
 import { voidTransaction } from "./void.js";
 
 const TransactionParams = z.object({ id: z.uuid() });
@@ -15,5 +18,11 @@ export function transactionRoutes(app: FastifyInstance, db: Db): void {
     const body = VoidBody.parse(req.body);
     const reversal = await voidTransaction(db, id, body?.description);
     return reply.status(201).send(reversal);
+  });
+
+  app.get("/groups/:groupId/transactions", async (req) => {
+    const { groupId } = GroupParams.parse(req.params);
+    const query = PageQuery.parse(req.query);
+    return groupHistory(db, groupId, query);
   });
 }
