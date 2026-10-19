@@ -1,6 +1,7 @@
 import Fastify, { type FastifyInstance } from "fastify";
 import { sql } from "kysely";
 import type { Db } from "./db.js";
+import { balanceRoutes } from "./balances/routes.js";
 import { expenseRoutes } from "./expenses/routes.js";
 import { groupRoutes } from "./groups/routes.js";
 import { registerErrorHandler } from "./http/errors.js";
@@ -22,6 +23,7 @@ export function buildApp({ db }: AppDeps): FastifyInstance {
   memberRoutes(app, db);
   groupRoutes(app, db);
   expenseRoutes(app, db);
+  balanceRoutes(app, db);
 
   return app;
 }
