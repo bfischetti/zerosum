@@ -1,10 +1,12 @@
 import { randomUUID } from "node:crypto";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { testApp, seedGroup } from "../support/app.js";
 import { testDb as db } from "../support/db.js";
+import { expectLedgerInvariants } from "../support/invariants.js";
 
 describe("POST /groups/:groupId/expenses", () => {
   const app = testApp();
+  afterEach(expectLedgerInvariants);
   let groupId: string;
   let ids: Record<string, string>;
 

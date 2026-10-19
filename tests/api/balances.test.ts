@@ -1,11 +1,13 @@
 import { randomUUID } from "node:crypto";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { seedGroup, testApp } from "../support/app.js";
 import { testDb as db } from "../support/db.js";
+import { expectLedgerInvariants } from "../support/invariants.js";
 import { groupWith, postTransaction } from "../support/fixtures.js";
 
 describe("GET /groups/:groupId/balances", () => {
   const app = testApp();
+  afterEach(expectLedgerInvariants);
 
   const balances = async (groupId: string) => {
     const res = await app.inject({ method: "GET", url: `/groups/${groupId}/balances` });
