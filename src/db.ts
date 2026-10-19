@@ -84,10 +84,10 @@ pg.types.setTypeParser(pg.types.builtins.INT8, (value) => {
 
 export type Db = Kysely<Database>;
 
-export function createDb(connectionString: string): Db {
+export function createDb(connectionString: string, opts: { poolSize?: number } = {}): Db {
   return new Kysely<Database>({
     dialect: new PostgresDialect({
-      pool: new pg.Pool({ connectionString }),
+      pool: new pg.Pool({ connectionString, max: opts.poolSize ?? 10 }),
     }),
   });
 }
