@@ -7,6 +7,7 @@ import { groupRoutes } from "./groups/routes.js";
 import { registerErrorHandler } from "./http/errors.js";
 import { memberRoutes } from "./members/routes.js";
 import { settlementRoutes } from "./settlements/routes.js";
+import { statementRoutes } from "./statements/routes.js";
 import { transactionRoutes } from "./transactions/routes.js";
 
 export interface AppDeps {
@@ -28,6 +29,7 @@ export function buildApp({ db }: AppDeps): FastifyInstance {
   settlementRoutes(app, db);
   transactionRoutes(app, db);
   balanceRoutes(app, db);
+  statementRoutes(app, db);
 
   return app;
 }
