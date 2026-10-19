@@ -71,7 +71,8 @@ describe("Idempotency-Key on write endpoints", () => {
 
     expect(first.statusCode).toBe(201);
     expect(second.statusCode).toBe(201);
-    expect(second.json()).toEqual(first.json());
+    // Byte-identical, not just deep-equal: jsonb storage once re-ordered keys.
+    expect(second.body).toBe(first.body);
     expect(first.headers["idempotent-replayed"]).toBeUndefined();
     expect(second.headers["idempotent-replayed"]).toBe("true");
     expect(await expenseCount()).toBe(1);
