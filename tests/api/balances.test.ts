@@ -1,9 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { afterEach, describe, expect, it } from "vitest";
 import { seedGroup, testApp } from "../support/app.js";
-import { testDb as db } from "../support/db.js";
 import { expectLedgerInvariants } from "../support/invariants.js";
-import { groupWith, postTransaction } from "../support/fixtures.js";
 
 describe("GET /groups/:groupId/balances", () => {
   const app = testApp();
@@ -89,31 +87,24 @@ describe("GET /groups/:groupId/balances", () => {
     });
   });
 
-  // Posted straight to the ledger until the void endpoint exists.
   it("leaves a voided settlement out of sent and received", async () => {
-    const { groupId, accounts: a } = await groupWith(db, ["Bruno", "Carla"]);
-    await postTransaction(db, groupId, [
-      [a.Bruno!, -3000],
-      [a.Carla!, 3000],
-    ]);
-    const settlement = await postTransaction(
-      db,
-      groupId,
-      [
-        [a.Carla!, -3000],
-        [a.Bruno!, 3000],
-      ],
-      { type: "settlement" },
-    );
-    await postTransaction(
-      db,
-      groupId,
-      [
-        [a.Carla!, 3000],
-        [a.Bruno!, -3000],
-      ],
-      { type: "reversal", reversesId: settlement },
-    );
+    const { groupId, ids } = await seedGroup(app, ["Bruno", "Carla"]);
+    await app.inject({
+      method: "POST",
+      url: `/groups/${groupId}/expenses`,
+      payload: {
+        payerId: ids.Bruno,
+        amount: 3000,
+        description: "Tickets",
+        split: { type: "equal", memberIds: [ids.Carla] },
+      },
+    });
+    const settlement = await app.inject({
+      method: "POST",
+      url: `/groups/${groupId}/settlements`,
+      payload: { fromMemberId: ids.Carla, toMemberId: ids.Bruno, amount: 3000 },
+    });
+    await app.inject({ method: "POST", url: `/transactions/${settlement.json().id}/void` });
 
     expect(await byName(groupId)).toEqual({
       Bruno: { balance: 3000, sent: 0, received: 0 },
