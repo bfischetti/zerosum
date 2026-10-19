@@ -65,22 +65,23 @@ describe("GET /groups/:groupId/balances", () => {
     });
   });
 
-  // Settlements are posted straight to the ledger until the endpoint exists.
   it("counts settlements as sent and received", async () => {
-    const { groupId, accounts: a } = await groupWith(db, ["Bruno", "Carla"]);
-    await postTransaction(db, groupId, [
-      [a.Bruno!, -3000],
-      [a.Carla!, 3000],
-    ]);
-    await postTransaction(
-      db,
-      groupId,
-      [
-        [a.Carla!, -3000],
-        [a.Bruno!, 3000],
-      ],
-      { type: "settlement" },
-    );
+    const { groupId, ids } = await seedGroup(app, ["Bruno", "Carla"]);
+    await app.inject({
+      method: "POST",
+      url: `/groups/${groupId}/expenses`,
+      payload: {
+        payerId: ids.Bruno,
+        amount: 3000,
+        description: "Tickets",
+        split: { type: "equal", memberIds: [ids.Carla] },
+      },
+    });
+    await app.inject({
+      method: "POST",
+      url: `/groups/${groupId}/settlements`,
+      payload: { fromMemberId: ids.Carla, toMemberId: ids.Bruno, amount: 3000 },
+    });
 
     expect(await byName(groupId)).toEqual({
       Bruno: { balance: 0, sent: 0, received: 3000 },
@@ -88,6 +89,7 @@ describe("GET /groups/:groupId/balances", () => {
     });
   });
 
+  // Posted straight to the ledger until the void endpoint exists.
   it("leaves a voided settlement out of sent and received", async () => {
     const { groupId, accounts: a } = await groupWith(db, ["Bruno", "Carla"]);
     await postTransaction(db, groupId, [
